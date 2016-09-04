@@ -32,6 +32,10 @@ SOURCES		:=	source
 DATA		:=	data
 INCLUDES	:=	include
 
+APP_TITLE	:=	BubblePop
+APP_DESCRIPTION	:=	v2.0-beta1
+APP_AUTHOR	:=	cyno
+
 #---------------------------------------------------------------------------------
 # options for code generation
 #---------------------------------------------------------------------------------

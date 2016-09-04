@@ -14,6 +14,7 @@
 #define TOP_HEIGHT 240
 
 #include "main_font_ttf.h"
+#include "title_font_ttf.h"
 
 extern sftd_font *mainFont;
 
