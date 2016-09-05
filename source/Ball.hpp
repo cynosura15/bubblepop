@@ -22,19 +22,27 @@ public:
 		if(!pause)
 		{
 			if(hidKeysHeld() & KEY_TOUCH)
-				if((touch->px < m_x+m_radius) && (touch->px > m_x-m_radius) && (touch->py < m_y+m_radius) & (touch->py > m_y-m_radius))
-				{
-					score++;
+			{
+				if(!m_canUpdateTouch)
+					if((touch->px - m_x)*(touch->px - m_x) + (touch->py - m_y)*(touch->py - m_y) <= m_radius*m_radius)	//fun fact: ^ give me an error and I'm too lazy to fix it
+					{
+						m_canUpdateTouch = true;
+						
+						score++;
 
-					prevX = m_x;
-					prevY = m_y;
-					prevRad = m_radius;
-					if(radius_init > 5)
-						radius_init-=0.5;
-					m_radius = radius_init;
+						prevX = m_x;
+						prevY = m_y;
+						prevRad = m_radius;
+						if(radius_init > 5)
+							radius_init-=0.5;
+						m_radius = radius_init;
 
-					SetNewPos();
-				}
+						SetNewPos();
+					}
+			}
+
+			else
+				m_canUpdateTouch = false;
 
 			m_radius-=0.5;
 			if(m_radius <= 0)
@@ -56,6 +64,10 @@ public:
 		do
 			m_y = rand() % (BOT_HEIGHT - 2 * (int)m_radius) + (int)m_radius;//idem
 		while((m_y+m_radius > prevY-prevRad && m_y-m_radius < prevY+prevRad));
+	}
+	void Reset()
+	{
+		radius_init = 50.;
 	}
 private:
 	float m_x, m_y, m_radius;
