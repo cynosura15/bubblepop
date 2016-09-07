@@ -1,7 +1,13 @@
 #include "commun.h"
 #include "Ball.hpp"
 
+//music: TODO
+/*u8* buffer;
+u32 size;
+#define SAMPLERATE 32000*/
+
 sftd_font *mainFont, *titleFont, *scoreFont;
+bool easy_mode = false;
 
 u32 SetBgColor(int score)
 {
@@ -49,6 +55,8 @@ void Do_All()
 		sf2d_start_frame(GFX_BOTTOM, GFX_LEFT);
 			DrawTextCenteredBot(mainFont, 20, RGBA8(100, 100, 100, 255), 13, "Game start in...");
 			DrawTextCenteredBot(scoreFont, BOT_HEIGHT/2-10, RGBA8(255, 0, 0, 255), 20, timeStrFinal.c_str());
+			if(easy_mode)
+				DrawTextCenteredBot(mainFont, BOT_HEIGHT-20, RGBA8(0, 100, 0, 255), 13, "Easy Mode");
 		sf2d_end_frame();
 		sf2d_swapbuffers();
 
@@ -66,26 +74,42 @@ void Do_All()
 			pause = !pause;
 
 		if(hidKeysDown() & KEY_B || lost){
+			if(lost)
+				svcSleepThread(3000000000);
+
 			ball.Reset();
+			sf2d_set_clear_color(RGBA8(205, 225, 245, 255));
+
 			break;
 		}
 //-----------------------DRAWING---------------------------------------------------------------------------------------
 		sf2d_set_clear_color(SetBgColor(score));
 
+		//Convert score from int to string in order to be drawed at the center
+		std::stringstream scoreStrTemp;
+		scoreStrTemp << (score);
+		std::string scoreStr = scoreStrTemp.str();
+
 		sf2d_start_frame(GFX_TOP, GFX_LEFT);
 
 			DrawTextCentered(titleFont, TOP_HEIGHT/4, RGBA8(0, 0, 0, 255), 25, "BubblePop");
-			sftd_draw_textf(scoreFont, TOP_WIDTH/2-20, TOP_HEIGHT/2+20, RGBA8(0, 0, 255, 220), 40, "%d", score);
-			DrawTextCentered(mainFont, TOP_HEIGHT-20, RGBA8(0, 0, 0, 255), 15, "START=pause|B=Exit|Touch the bubbles!");
+			DrawTextCentered(scoreFont, TOP_HEIGHT/2+20, RGBA8(0, 0, 255, 220), 40, scoreStr.c_str());
+			DrawTextCentered(mainFont, TOP_HEIGHT-20, RGBA8(0, 0, 0, 255), 15, "START to Pause | B to Exit | Touch the bubbles!");
 
 		sf2d_end_frame();
 
 		sf2d_start_frame(GFX_BOTTOM, GFX_LEFT);
 
+			if(easy_mode){
+				DrawTextCenteredBot(mainFont, BOT_HEIGHT-20, RGBA8(0, 255, 0, 50), 13, "Easy Mode");
+				sf2d_draw_line(40, 0, 40, BOT_HEIGHT, 3, RGBA8(0, 0, 255, 255));
+				sf2d_draw_line(BOT_WIDTH-40, 0, BOT_WIDTH-40, BOT_HEIGHT, 3, RGBA8(0, 0, 255, 255));
+			}
+
 			ball.UpdateAndDraw(&touch, score, pause);
 
 			if(ball.hasLost()){
-				DrawTextCenteredBot(mainFont, BOT_HEIGHT/2, RGBA8(255, 0, 0, 255), 15, "Lost!");				
+				DrawTextCenteredBot(mainFont, BOT_HEIGHT/2, RGBA8(255, 0, 0, 255), 15, "Lost!");
 				lost = true; 	//used to properly exit Do_All() instead of using break;
 			}
 
@@ -104,29 +128,33 @@ void InitFonts()
 
 int main()
 {
-	srand(time(NULL));
+	srand(svcGetSystemTick());
 
 	sf2d_init();
 	sftd_init();
+	//csndInit();
 	InitFonts();
+	sf2d_set_clear_color(RGBA8(205, 225, 245, 255));
 
-	const char* str = "Press A to start, SELECT to return to HBL :)";
-	const char* str2 = "BubblePop by cynosura - 2016 | version 2.1";
+	//play_audio("/3ds/data/bubblepop/audio/sample.bin");
 
 	while(aptMainLoop()){
-		sf2d_set_clear_color(RGBA8(255, 255, 255, 255));
 
 		hidScanInput();
-
-		if(hidKeysHeld() & KEY_A)
+		if(hidKeysHeld() & KEY_A && hidKeysHeld() & KEY_DOWN){
+			easy_mode = true;
 			Do_All();
-		if(hidKeysHeld() & KEY_SELECT)
+			easy_mode = false;
+		}
+		else if(hidKeysDown() & KEY_A)
+			Do_All();
+		if(hidKeysDown() & KEY_SELECT)
 			break;
 
 		sf2d_start_frame(GFX_TOP, GFX_LEFT);
-			DrawTextCentered(titleFont, TOP_HEIGHT/4, RGBA8(0, 0, 0, 255), 25, "BubblePop");
-			DrawTextCentered(mainFont, TOP_HEIGHT/2, RGBA8(0, 0, 0, 255), 15, str);
-			DrawTextCentered(mainFont, TOP_HEIGHT-20, RGBA8(0, 0, 0, 200), 12, str2);
+			DrawTextCentered(titleFont, TOP_HEIGHT/4, RGBA8(0, 0, 0, 255), 30, "BubblePop");
+			DrawTextCentered(mainFont, TOP_HEIGHT/2, RGBA8(0, 0, 0, 255), 15, "Press A to start, SELECT to exit :)");
+			DrawTextCentered(mainFont, TOP_HEIGHT-20, RGBA8(0, 0, 0, 200), 12, "BubblePop by cynosura - 2016 | version 2.2");
 		sf2d_end_frame();
 		sf2d_start_frame(GFX_BOTTOM, GFX_LEFT);
 			//To do
@@ -135,8 +163,46 @@ int main()
 		sf2d_swapbuffers();
 	}
 
+	//stop_audio();
+	//stop_audio();
+	//csndExit();
 	sftd_free_font(mainFont);
 	sftd_fini();
 	sf2d_fini();
 	return 0;
 }
+
+/*void play_audio(const char *audio){
+
+	FILE *file = fopen(audio, "rb");
+
+	// seek to end of file
+	fseek(file, 0, SEEK_END);
+
+	// file pointer tells us the size
+	size_t size = ftell(file);
+
+	// seek back to start
+	fseek(file, 0, SEEK_SET);
+
+	//allocate a buffer
+	buffer =(u8*) linearAlloc(size);
+
+	//read contents !
+	size_t bytesRead = fread(buffer, 1, size, file);
+	//u8 test = &buffer;
+
+	//close the file because we like being nice and tidy
+	fclose(file);
+
+	csndPlaySound(8, SOUND_FORMAT_16BIT | SOUND_REPEAT, SAMPLERATE, 1, 0, buffer, buffer, size);
+	linearFree(buffer);
+}
+
+void stop_audio(){
+	csndExecCmds(true);
+	CSND_SetPlayState(0x8, 0);
+	memset(buffer, 0, size);
+	GSPGPU_FlushDataCache(buffer, size);
+	linearFree(buffer);
+}*/

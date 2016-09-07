@@ -33,7 +33,7 @@ DATA		:=	data
 INCLUDES	:=	include
 
 APP_TITLE	:=	BubblePop
-APP_DESCRIPTION	:=	v2.1
+APP_DESCRIPTION	:=	v2.2
 APP_AUTHOR	:=	cyno
 
 #---------------------------------------------------------------------------------

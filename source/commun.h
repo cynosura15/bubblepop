@@ -18,6 +18,10 @@
 #include "title_font_ttf.h"
 #include "score_font_ttf.h"
 
+//void play_audio(const char *audio);
+//void stop_audio();
+
 extern sftd_font *mainFont;
+extern bool easy_mode;
 
 #endif
